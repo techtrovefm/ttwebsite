@@ -1,0 +1,25 @@
+body {
+  font-family: sans-serif;
+}
+.tile {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  transition: box-shadow 0.3s ease;
+}
+.tile:hover {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+.tile h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+.tile ul {
+  list-style: disc;
+  margin-left: 1.5rem;
+}
+a {
+  color: #2563eb;
+  text-decoration: underline;
+}
