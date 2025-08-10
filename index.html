@@ -1,60 +1,218 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TechTrove Facility Management</title>
-  <link href="style.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Trove Facility Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f0f2f5 0%, #e0e4e7 100%);
+      color: #1a2a44;
+      line-height: 1.6;
+    }
+    .header {
+      background: white;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin: 20px auto;
+      max-width: 900px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .header:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    }
+    .header img {
+      width: 120px;
+      margin-right: 20px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 2.2em;
+      color: #00a8cc;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto 30px;
+      padding: 0 20px;
+      display: grid;
+      gap: 25px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    }
+    .card h2 {
+      display: flex;
+      align-items: center;
+      font-size: 1.8em;
+      margin-bottom: 15px;
+      color: #1a2a44;
+      font-weight: 500;
+    }
+    .card h2 i {
+      margin-right: 12px;
+      color: #00a8cc;
+      font-size: 1.2em;
+    }
+    .card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .card ul li {
+      margin: 12px 0;
+      display: flex;
+      align-items: center;
+      font-size: 1.1em;
+    }
+    .card ul li::before {
+      content: "✔";
+      color: #00a8cc;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+    .card p {
+      font-size: 1.1em;
+      color: #34495e;
+    }
+    .card a {
+      color: #00a8cc;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .card a:hover {
+      color: #0097b9;
+    }
+    .services {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+    }
+    .footer {
+      text-align: center;
+      padding: 15px;
+      background: #34495e;
+      color: white;
+      margin-top: 20px;
+      font-size: 0.9em;
+    }
+    @media (max-width: 768px) {
+      .services {
+        grid-template-columns: 1fr;
+      }
+      .header {
+        flex-direction: column;
+        text-align: center;
+      }
+      .header img {
+        margin-right: 0;
+        margin-bottom: 10px;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-blue-100 to-green-100 min-h-screen text-gray-800">
-  <header class="bg-white shadow-md py-4 px-6 flex justify-between items-center">
-    <div class="flex items-center gap-2">
-      <img src="logo.png" alt="TechTrove Logo" class="w-10 h-10"/>
-      <h1 class="text-xl font-bold text-gray-700">Tech Trove Facility Management</h1>
-    </div>
-  </header>
-
-  <main class="max-w-6xl mx-auto p-4 mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    <div class="tile">
-      <h2>📘 About Us</h2>
+<body>
+  <div class="header">
+    <img src="logo.png" alt="Tech Trove Logo">
+    <h1>Tech Trove Facility Management</h1>
+  </div>
+  <div class="container">
+    <div class="card">
+      <h2><i class="fas fa-info-circle"></i> About Us</h2>
       <p>We are dedicated to transforming your systems into a haven of safety, comfort, and efficiency. Specializing in top-tier electrical and plumbing services for residential and commercial facilities.</p>
     </div>
-
-    <div class="tile">
-      <h2>💡 Electrical Services</h2>
-      <ul>
-        <li>Routine Preventive Maintenance</li>
-        <li>Lighting Systems Maintenance</li>
-        <li>Power Backup & Generator Systems</li>
-        <li>Emergency Services & Troubleshooting</li>
-        <li>Smart Upgrades, HVAC, Fire Alarm etc.</li>
-      </ul>
+    <div class="services">
+      <div class="card" onclick="alert('Explore Electrical Services!')">
+        <h2><i class="fas fa-bolt"></i> Electrical Services</h2>
+        <ul>
+          <li>Routine Preventive Maintenance</li>
+          <li>Power Backup & Generator Systems</li>
+          <li>Emergency Services & Troubleshooting</li>
+          <li>Smart Upgrades, HVAC, Alarm etc.</li>
+        </ul>
+      </div>
+      <div class="card" onclick="alert('Explore Plumbing Services!')">
+        <h2><i class="fas fa-faucet"></i> Plumbing Services</h2>
+        <ul>
+          <li>Repairs & Replacement</li>
+          <li>Drainage & Waste Water</li>
+          <li>Water Supply & Storage</li>
+          <li>Emergency Support</li>
+        </ul>
+      </div>
     </div>
-
-    <div class="tile">
-      <h2>🚿 Plumbing Services</h2>
-      <ul>
-        <li>Routine Maintenance</li>
-        <li>Repair & Replacement</li>
-        <li>Water Supply & Storage</li>
-        <li>Drainage & Waste Water</li>
-        <li>Emergency Support</li>
-      </ul>
+    <div class="card">
+      <h2><i class="fas fa-quote-left"></i> Request a Quote</h2>
+      <p>Please fill out this <a href="https://forms.gle/example" target="_blank">Google Form</a> to request a quotation.</p>
     </div>
-
-    <div class="tile">
-      <h2>📝 Request a Quote</h2>
-      <p>Please <a href="https://forms.gle/owSD25wCyQtzMpNt6" target="_blank">fill out this Google Form</a> to request a quotation.</p>
+    <div class="card">
+      <h2><i class="fas fa-envelope"></i> Contact</h2>
+      <p><a href="tel:+919035517877">Call us: +91 90355 17877</a></p>
+      <p><a href="mailto:contact@techtrovefm.com">Email: contact@techtrovefm.com</a></p>
+      <p><a href="mailto:techtrovefm@gmail.com">Email: techtrovefm@gmail.com</a></p>
+      <p><a href="https://www.techtrovefm.com" target="_blank">Website: www.techtrovefm.com</a></p>
     </div>
-
-    <div class="tile">
-      <h2>📞 Contact</h2>
-      <p>📞 +91 90355 17877<br/>📧 techtrovefm@gmail.com<br/>🌐 www.techtrovefm.com</p>
-    </div>
-  </main>
-
-  <footer class="text-center text-sm py-6 text-gray-500">
-    &copy; 2025 TechTrove Facility Management. All rights reserved.
-  </footer>
+  </div>
+  <div class="footer">
+    <p>&copy; 2025 Tech Trove Facility Management. All rights reserved.</p>
+  </div>
 </body>
 </html>
